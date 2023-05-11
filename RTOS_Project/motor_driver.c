@@ -1,52 +1,43 @@
-#include "tm4c123gh6pm.h"
-#define EnableA PF_1
-#define Input1 PD_1
-#define Input2 PD_2
-#define Button PD_3
-#define GET_BIT(REG,BIT) ( ( REG &(1<<BIT) ) >> BIT )
-void Init(void);
-void Turn_oneDirection(void);
-void Turn_OppositeDir(void);
-void Delay_ms(int time_ms);
-void DebouncingSwitch(void);
-static int pressed= 0; //false not pressed
-/*void Init(void){
-	pinMode(EnableA,OUTPUT);
-	pinMode(Input1,OUTPUT);
-	pinMode(Input2,OUTPUT);
-	pinMode(Button,INPUT);
+#include "motor_driver.h"
+#include "FreeRTOSConfig.h"
+//digitalWrite(in1, HIGH);
+//digitalWrite(in2, LOW);
+
+void move_window_up(){
+	
+	SET_BIT((GPIOA->DATA),4);
+	CLEAR_BIT((GPIOA->DATA),5);
 }
-*/
-//Spin motor in one direction by giving IN1 and IN2 signals to L298N
-void Turn_oneDirection(void)
-{
-			//while(digitalRead(Button)==true){
-			
-		  if(pressed==1){
-     SYSCTL_RCGC2_R  |= 0x01;   /* enable clock to PORTF */
-	   GPIO_PORTA_DIR_R |= (1<<3)|(1<<2);            /* pin digital */
-     GPIO_PORTA_DEN_R|= (1<<3)|(1<<2);            /* pin digital */
-     GPIO_PORTA_DATA_R |=(1<<2);
-		 GPIO_PORTA_DATA_R &= ~(1<<3);
-		  Delay_ms(20);
+
+//digitalWrite(in1, LOW);
+//digitalWrite(in2, HIGH);
+void move_window_down(){
+	CLEAR_BIT((GPIOA->DATA),4);
+	SET_BIT((GPIOA->DATA),5);
+	
+}
+void stop_motor(){
+	CLEAR_BIT((GPIOA->DATA),4);
+	CLEAR_BIT((GPIOA->DATA),5);
+}
+	
+char window_state(){
+	int x = GET_BIT((GPIOA->DATA),4);
+	int y = GET_BIT((GPIOA->DATA),5);
+	
+	if( x==0 & y==0){
+		return 's';
 	}
+	else if(x==0 & y==1){
+		return 'd';
+	}
+	else if(x==1 & y==0){
+		return 'u';
+	}
+	
 }
-			//}
-//Spin motor in one direction by giving IN1 and IN2 signals to L298N
-void Turn_OppositeDir(void)
-{
-	   //while(digitalRead(Button)==true){
-			
-		  if(pressed==0){
-     SYSCTL_RCGC2_R  |= 0x01;   /* enable clock to PORTF */
-	   GPIO_PORTA_DIR_R |= (1<<3)|(1<<2);            /* pin digital */
-     GPIO_PORTA_DEN_R|= (1<<3)|(1<<2);            /* pin digital */
-     GPIO_PORTA_DATA_R |=(1<<2);
-		 GPIO_PORTA_DATA_R &= ~(1<<2);
-		 Delay_ms(20);
-       }
-			}
-		//}
+
+
 void Delay_ms(int time_ms)
 {
     int i, j;
@@ -56,9 +47,4 @@ void Delay_ms(int time_ms)
 							/* excute NOP for 1ms */
 						}  
 }
-void DebouncingSwitch(void){
-	//if (digitalRead(Button)==true){
-		pressed=!pressed;
-	//}
-	
-}
+
